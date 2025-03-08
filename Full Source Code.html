@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Josim VIP Payment System</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            background: #e0e0e0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            position: relative;
+        }
+
+        h2 {
+            color: #008CBA; /* Updated header color */
+            text-shadow: 0px 0px 8px #008CBA;
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 95%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1);
+            font-size: 16px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .bubble-box {
+            background: white;
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0px 4px 12px rgba(0,0,0,0.2);
+            display: none;
+            position: relative;
+            margin-top: 20px;
+        }
+
+        #qrWrapper {
+            padding: 15px;
+            background: white;
+            border-radius: 25px;
+            display: inline-block;
+            border: 5px solid black;
+            text-align: center;
+            position: relative;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .top-image {
+            position: absolute;
+            top: -45px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: auto;
+            background: white;
+            padding: 5px;
+            border-radius: 10px;
+        }
+
+        #qrcode {
+            width: 220px;
+            height: 220px;
+            margin: auto;
+        }
+
+        .separator {
+            width: 90%;
+            height: 2px;
+            background: #ccc;
+            margin: 10px auto;
+        }
+
+        .timer {
+            font-size: 14px;
+            font-weight: bold;
+            color: red;
+            margin-top: 10px;
+        }
+
+        .download-btn {
+            display: none;
+            width: 95%;
+            padding: 12px;
+            font-size: 16px;
+            border: none;
+            color: white;
+            border-radius: 8px;
+            background: #008CBA; /* Button color matches the header */
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        /* নতুন CSS: QR কোডের আগে Name, UPI ID, Amount দেখানোর জন্য */
+        .hidden {
+            display: none;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Josim VIP Payment System</h2>
+
+        <div id="inputSection">
+            <input type="text" id="name" placeholder="Enter Name (e.g., Jasim Sekh)" oninput="generateQRCode()">
+            <input type="text" id="upi" placeholder="Enter UPI ID (e.g., josimsekh32@axl)" oninput="generateQRCode()">
+            <input type="number" id="amount" placeholder="Enter Amount (e.g.,₹100)" oninput="generateQRCode()">
+        </div>
+
+        <div class="bubble-box" id="qrSection">
+            <div id="qrWrapper">
+                <p id="qrDetails" class="hidden">
+                    <strong>Name:</strong> <span id="qrName"></span> <br>
+                    <strong>UPI ID:</strong> <span id="qrUpi"></span> <br>
+                    <strong>Amount:</strong> <span id="qrAmount"></span>
+                </p>
+                <img class="top-image" src="https://i.ibb.co/5X5h9sh6/Picsart-24-01-02-19-43-37-395.jpg">
+                <div id="qrcode"></div>
+                <div class="separator"></div>
+                <p class="timer">⏱️ Time Left: <span id="countdown">4:59</span></p>
+                <img src="https://i.ibb.co/xqYSsNX3/IMG-20250307-150606.jpg" width="100%">
+            </div>
+        </div>
+
+        <button class="download-btn" id="downloadQR" onclick="downloadQRCode()">Download QR Code</button>
+        <button class="download-btn" id="resetQR" onclick="resetQR()">Generate New QR Code</button>
+
+    </div>
+
+    <script>
+        let countdownInterval;
+
+        function generateQRCode() {
+            let name = document.getElementById("name").value;
+            let upi = document.getElementById("upi").value;
+            let amount = document.getElementById("amount").value;
+
+            if (!upi) {
+                document.getElementById("qrSection").style.display = "none";
+                document.getElementById("downloadQR").style.display = "none";
+                document.getElementById("resetQR").style.display = "none";
+                return;
+            }
+
+            let upiData = `upi://pay?pa=${upi}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`;
+
+            document.getElementById("qrcode").innerHTML = "";
+            new QRCode(document.getElementById("qrcode"), {
+                text: upiData,
+                width: 220,
+                height: 220
+            });
+
+            startTimer(5 * 60);
+
+            document.getElementById("qrSection").style.display = "block";
+            document.getElementById("downloadQR").style.display = "inline-block";
+            document.getElementById("resetQR").style.display = "inline-block";
+
+            // Name, UPI ID, Amount আপডেট + শো করা
+            document.getElementById("qrName").textContent = name;
+            document.getElementById("qrUpi").textContent = upi;
+            document.getElementById("qrAmount").textContent = amount;
+
+            document.getElementById("qrDetails").classList.remove("hidden"); // টেক্সট শো করানো
+        }
+
+        function startTimer(duration) {
+            let timer = duration, minutes, seconds;
+            clearInterval(countdownInterval);
+            countdownInterval = setInterval(function () {
+                minutes = parseInt(timer / 60, 10);
+                seconds = parseInt(timer % 60, 10);
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+                document.getElementById("countdown").textContent = minutes + ":" + seconds;
+                if (--timer < 0) {
+                    clearInterval(countdownInterval);
+                    location.reload();
+                }
+            }, 1000);
+        }
+
+        function downloadQRCode() {
+            let qrSection = document.getElementById("qrSection");
+
+            html2canvas(qrSection, { scale: 2 }).then(canvas => {
+                let link = document.createElement("a");
+                link.download = "Josim_Payment_QR_Code.png";
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            });
+        }
+
+        function resetQR() {
+            location.reload(); // QR Data Reset & Page Reload
+        }
+
+        document.getElementById('name').addEventListener('input', generateQRCode);
+        document.getElementById('upi').addEventListener('input', generateQRCode);
+        document.getElementById('amount').addEventListener('input', generateQRCode);
+    </script>
+
+</body>
+</html>
